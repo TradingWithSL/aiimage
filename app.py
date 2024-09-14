@@ -1,16 +1,14 @@
-# @title
 import requests
 import io
 from PIL import Image
-from IPython.display import display
+import streamlit as st
 import time
 
-#API_URL = "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5"
+# Hugging Face API details
 API_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2-1"
-# API_URL = "https://api-inference.huggingface.co/models/Kvikontent/midjourney-v6"
-#API_URL = "https://api-inference.huggingface.co/models/Yntec/dreamlike-photoreal-remix"
-headers = {"Authorization": "Bearer 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"}  # Replace 'hf_token' with your actual Hugging Face token
+headers = {"Authorization": "Bearer YOUR_HUGGING_FACE_TOKEN"}  # Replace with your Hugging Face token
 
+# Function to query the Hugging Face API
 def query(payload):
     response = requests.post(API_URL, headers=headers, json=payload)
     if response.status_code == 200:
@@ -20,6 +18,7 @@ def query(payload):
     else:
         raise Exception(f"Failed to generate image: {response.status_code} - {response.text}")
 
+# Function to generate image with retry mechanism
 def generate_image(prompt, max_retries=10, wait_time=5):
     payload = {"inputs": prompt}
     for attempt in range(max_retries):
@@ -27,15 +26,26 @@ def generate_image(prompt, max_retries=10, wait_time=5):
         if image_bytes:
             return image_bytes
         else:
-            print(f"Model is loading. Retrying in {wait_time} seconds... (Attempt {attempt + 1}/{max_retries})")
+            st.warning(f"Model is loading. Retrying in {wait_time} seconds... (Attempt {attempt + 1}/{max_retries})")
             time.sleep(wait_time)
     raise Exception("Failed to generate image after multiple attempts.")
 
-try:
-    image_bytes = generate_image("A high-resolution, photorealistic image of an Indian brahman dog standing in a grassy field with mountains in the background")
+# Streamlit app
+st.title("AI Image Generator")
+st.write("Enter a prompt and generate an image using the Stability AI model via Hugging Face API.")
 
-    # Open the image with PIL and display it
-    image = Image.open(io.BytesIO(image_bytes))
-    display(image)
-except Exception as e:
-    print(e)
+# User input for the prompt
+prompt = st.text_input("Enter your prompt", value="A high-resolution, photorealistic image of an Indian brahman dog standing in a grassy field with mountains in the background")
+
+# Button to trigger the image generation
+if st.button("Generate Image"):
+    try:
+        with st.spinner("Generating image... please wait!"):
+            image_bytes = generate_image(prompt)
+
+            # Open the image with PIL and display it in Streamlit
+            image = Image.open(io.BytesIO(image_bytes))
+            st.image(image, caption="Generated Image", use_column_width=True)
+
+    except Exception as e:
+        st.error(f"Error: {str(e)}")
