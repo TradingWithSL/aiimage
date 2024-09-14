@@ -6,7 +6,7 @@ import time
 
 # Hugging Face API details
 API_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2-1"
-headers = {"Authorization": "Bearer YOUR_HUGGING_FACE_TOKEN"}  # Replace with your Hugging Face token
+headers = {"Authorization": "Bearer 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"}  # Replace with your Hugging Face token
 
 # Function to query the Hugging Face API
 def query(payload):
